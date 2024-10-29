@@ -13,3 +13,4 @@ http://localhost:32000/products
 
 
 https://learn.microsoft.com/ru-ru/training/modules/dotnet-deploy-microservices-kubernetes/3-exercise-push-to-docker-hub
+https://learn.microsoft.com/ru-ru/training/modules/microservices-devops-aspnet-core/
