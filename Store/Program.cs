@@ -1,15 +1,13 @@
-using Store.Components;
-using Store.Services;
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<ProductService>();
-builder.Services.AddHttpClient<ProductService>(c =>
-{
-    var url = builder.Configuration["ProductEndpoint"] ?? throw new InvalidOperationException("ProductEndpoint is not set");
+var productEndpoint = builder.Configuration["ProductEndpoint"]
+    ?? throw new InvalidOperationException("ProductEndpoint is not set");
 
-    c.BaseAddress = new(url);
-});
+builder.Services.AddSingleton<ProductService>();
+builder.Services.AddHttpClient<ProductService>(c => c.BaseAddress = new Uri(productEndpoint));
+
+builder.Services.AddServiceDiscovery();
+builder.Services.AddHttpForwarderWithServiceDiscovery();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -32,5 +30,15 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapForwarder("/api/product/{name}.{ext:regex(^png|jpg$)}", productEndpoint, "/images/{name}.{ext}");
+
+// Add supported cultures for request localization
+var supportedCultures = new[] { "en-US" };
+var localizationOptions = new RequestLocalizationOptions().SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
 
 app.Run();
